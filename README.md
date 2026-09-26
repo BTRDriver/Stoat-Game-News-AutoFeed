@@ -4,10 +4,20 @@ Free GitHub Action that posts official Steam news into a Stoat channel.
 
 No RSS.app, no paid Zapier/Make, no third-party bot permissions. One workflow per game. Webhook URLs stay in GitHub secrets.
 
-**Games included**
-- Escape from Tarkov (`tarkov-news.yml`, app `3932890`)
-- DayZ (`dayz_news.yml`, app `221100`)
-- Nuclear Option (`nuclear_option_news.yml`, app `2168680`)
+## Games included
+
+| Game | Workflow | Steam App ID | Secret |
+|---|---|---|---|
+| Escape from Tarkov | `tarkov-news.yml` | `3932890` | `STOAT_WEBHOOK` |
+| DayZ | `dayz_news.yml` | `221100` | `STOAT_WEBHOOK_DAYZ` |
+| Nuclear Option | `nuclear_option_news.yml` | `2168680` | `STOAT_WEBHOOK_NUCLEAR` |
+| ARC Raiders | `arc_raiders_news.yml` | `1808500` | `STOAT_WEBHOOK_ARC` |
+| Halo: The Master Chief Collection | `halo_mcc_news.yml` | `976730` | `STOAT_WEBHOOK_MCC` |
+| Valheim | `valheim_news.yml` | `892970` | `STOAT_WEBHOOK_VALHEIM` |
+| WARDOGS | `wardogs_news.yml` | `1867240` | `STOAT_WEBHOOK_WARDOGS` |
+| Active Matter | `active_matter_news.yml` | `2887580` | `STOAT_WEBHOOK_ACTIVEMATTER` |
+| Project Zomboid | `project_zomboid_news.yml` | `108600` | `STOAT_WEBHOOK_PZ` |
+| Helldivers 2 | `helldivers2_news.yml` | `553850` | `STOAT_WEBHOOK_HD2` |
 
 ## What you need
 - A Stoat server and a channel per game (or one shared channel)
@@ -19,7 +29,7 @@ No RSS.app, no paid Zapier/Make, no third-party bot permissions. One workflow pe
 ### 1. Create a Stoat webhook
 Channel settings → Webhooks → New → copy the full URL.
 
-Enable **Masquerade** on that webhook if you want a custom name and avatar.
+Name it something like `Tarkov News` / `WARDOGS News`. Enable **Masquerade** if you want the custom name and avatar from the workflow.
 
 ### 2. Fork or copy this repo
 Public repos are fine. Keep the files under `.github/workflows/`.
@@ -27,13 +37,9 @@ Public repos are fine. Keep the files under `.github/workflows/`.
 ### 3. Add secrets
 Repo → **Settings → Secrets and variables → Actions → New repository secret**.
 
-| Secret name | Value |
-|---|---|
-| `STOAT_WEBHOOK` | Tarkov channel webhook URL |
-| `STOAT_WEBHOOK_DAYZ` | DayZ channel webhook URL |
-| `STOAT_WEBHOOK_NUCLEAR` | Nuclear Option channel webhook URL |
+Use the secret names in the table above. Value = that game’s webhook URL.
 
-Same channel for every game? Use one secret and change each workflow’s env line to:
+Same channel for every game? Use one secret and point each workflow at:
 
 ```yaml
 STOAT_WEBHOOK: ${{ secrets.STOAT_WEBHOOK }}

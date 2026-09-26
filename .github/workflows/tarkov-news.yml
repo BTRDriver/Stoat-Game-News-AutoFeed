@@ -13,63 +13,69 @@ jobs:
           path: seen.txt
           key: tarkov-seen
 
-      - name: Fetch feed and post new items
+      - name: Scrape official news and post
         env:
-          STOAT_WEBHOOK: ${{https://stoat.chat/api/webhooks/01M3F8FM24AWZRNQPX2VHWWJBM/WGCyNN8SlWmMklyWs39qT4vzKDmx2HHdkkTIwSQHxM-pn6b-x1B967UE9OFEnt9o}}
-          FEED_URL: https://www.escapefromtarkov.com/news
+          STOAT_WEBHOOK: ${{ secrets.STOAT_WEBHOOK }}
         run: |
           python3 - <<'PY'
-          import json, os, sys, urllib.request, urllib.error, pathlib
+          import json, os, re, sys, urllib.request, urllib.error, pathlib, html as htmllib
 
-          feed_url = os.environ["FEED_URL"]
           hook = os.environ.get("STOAT_WEBHOOK", "").strip()
-          if not hook:
-              print("STOAT_WEBHOOK secret is empty")
+          if not hook.startswith("http"):
+              print("STOAT_WEBHOOK secret missing or invalid")
               sys.exit(1)
+
+          news_url = "https://www.escapefromtarkov.com/news"
+          req = urllib.request.Request(
+              news_url,
+              headers={"User-Agent": "Mozilla/5.0 TarkovStoatBot"},
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  page = r.read().decode("utf-8", "replace")
+                  print(f"news page HTTP {r.status}, {len(page)} bytes")
+          except urllib.error.HTTPError as e:
+              print(f"news page failed: HTTP {e.code}")
+              sys.exit(1)
+
+          # official articles look like /news/id/408
+          found = []
+          seen_ids = set()
+          for m in re.finditer(
+              r'href="(/news/id/(\d+))"[\s\S]{0,400}?<[^>]*>([^<]{3,200})<',
+              page,
+              re.I,
+          ):
+              path, nid, title = m.group(1), m.group(2), htmllib.unescape(m.group(3)).strip()
+              title = re.sub(r"\s+", " ", title)
+              if nid in seen_ids:
+                  continue
+              if title.lower() in {"read more", "more", "news"}:
+                  continue
+              seen_ids.add(nid)
+              found.append((nid, "https://www.escapefromtarkov.com" + path, title))
+
+          if not found:
+              # fallback: any /news/id/N link
+              for nid in re.findall(r"/news/id/(\d+)", page):
+                  if nid not in seen_ids:
+                      seen_ids.add(nid)
+                      found.append((nid, f"https://www.escapefromtarkov.com/news/id/{nid}", f"Tarkov news #{nid}"))
+
+          print(f"found {len(found)} articles")
+          for nid, url, title in found[:5]:
+              print(f"  {nid}: {title} {url}")
 
           state = pathlib.Path("seen.txt")
           seen = set(state.read_text().splitlines()) if state.exists() else set()
-          print(f"seen count: {len(seen)}")
-
-          try:
-              req = urllib.request.Request(feed_url, headers={"User-Agent": "tarkov-stoat-bot"})
-              with urllib.request.urlopen(req, timeout=30) as r:
-                  raw = r.read()
-                  print(f"feed HTTP {r.status}, {len(raw)} bytes")
-          except urllib.error.HTTPError as e:
-              print(f"feed fetch failed: HTTP {e.code}")
-              print(e.read()[:500])
-              sys.exit(1)
-
-          text = raw.decode("utf-8", "replace")
-          if text.lstrip().startswith("<"):
-              print("got XML, not JSON — use the .json feed URL or convert")
-              sys.exit(1)
-          try:
-              data = json.loads(text)
-          except json.JSONDecodeError:
-              print("feed is not JSON:")
-              print(text[:400])
-              sys.exit(1)
-
-          items = data.get("items") or data.get("entries") or []
-          if isinstance(data.get("data"), dict):
-              items = data["data"].get("items") or items
-          print(f"parsed {len(items)} items")
-          if items:
-              print("sample keys:", list(items[0].keys()))
-
           posted = 0
+          # first run: mark current items seen, post only the newest one so you don't dump the whole archive
+          first_run = not seen
+          to_consider = found[:1] if first_run else found[:8]
+
           new_lines = list(seen)
-          for item in reversed(items[:8]):
-              url = item.get("url") or item.get("link") or item.get("id") or ""
-              if isinstance(url, dict):
-                  url = url.get("href") or ""
-              title = item.get("title") or "Tarkov update"
-              if isinstance(title, dict):
-                  title = title.get("text") or str(title)
-              key = url or title
-              if not key or key in seen:
+          for nid, url, title in reversed(to_consider):
+              if nid in seen:
                   continue
               body = json.dumps({"content": f"**{title}**\n{url}"}).encode()
               try:
@@ -82,11 +88,16 @@ jobs:
                       print(f"posted {title!r} -> HTTP {resp.status}")
               except urllib.error.HTTPError as e:
                   print(f"stoat webhook failed: HTTP {e.code}")
-                  print(e.read()[:500])
+                  print(e.read()[:400])
                   sys.exit(1)
-              new_lines.append(key)
+              new_lines.append(nid)
               posted += 1
 
-          state.write_text("\n".join(new_lines[-200:]) + ("\n" if new_lines else ""))
+          if first_run:
+              for nid, _, _ in found:
+                  if nid not in new_lines:
+                      new_lines.append(nid)
+
+          state.write_text("\n".join(new_lines[-300:]) + ("\n" if new_lines else ""))
           print(f"done, posted {posted}")
           PY

@@ -65,9 +65,7 @@ jobs:
           for item in reversed(batch):
               gid = str(item.get("gid") or "")
               title = html.unescape(item.get("title") or "ARC Raiders update")
-              url = (
-                  else "https://store.steampowered.com/news/app/1808500"
-              )
+              url = "https://store.steampowered.com/news/app/1808500"
               raw_desc = item.get("contents") or ""
               desc = re.sub(r"<[^>]+>", "", html.unescape(raw_desc))
               desc = re.sub(r"\s+", " ", desc).strip()

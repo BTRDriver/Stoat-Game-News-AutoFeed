@@ -74,7 +74,13 @@ jobs:
               url = item.get("url") or "https://store.steampowered.com/news/app/3932890"
               if not gid or gid in seen:
                   continue
-              body = json.dumps({"content": f"**{title}**\n{url}"}).encode()
+              body = json.dumps({
+                  "content": f"**{title}**\n{url}",
+                  "masquerade": {
+                      "name": "Tarkov News",
+                      "avatar": "https://cdn.cloudflare.steamstatic.com/steam/apps/3932890/capsule_231x87.jpg"
+                  }
+              }).encode()
               try:
                   hook_req = urllib.request.Request(
                       hook,

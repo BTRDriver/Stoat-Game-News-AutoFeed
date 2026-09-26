@@ -43,6 +43,8 @@ Same channel for every game? Use one secret and point each workflow at:
 
 ```yaml
 STOAT_WEBHOOK: ${{ secrets.STOAT_WEBHOOK }}
+```
+
 
 ## Also see
 Want a Monday digest instead of per-game posts?  

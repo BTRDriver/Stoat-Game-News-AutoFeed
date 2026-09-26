@@ -66,8 +66,6 @@ jobs:
               gid = str(item.get("gid") or "")
               title = html.unescape(item.get("title") or "ARC Raiders update")
               url = (
-                  f"https://store.steampowered.com/news/app/1808500/view/{gid}"
-                  if gid.isdigit()
                   else "https://store.steampowered.com/news/app/1808500"
               )
               raw_desc = item.get("contents") or ""

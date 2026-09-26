@@ -23,6 +23,7 @@ jobs:
           import json
           import os
           import pathlib
+          import re
           import sys
           import urllib.error
           import urllib.request
@@ -34,7 +35,7 @@ jobs:
 
           api = (
               "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/"
-              "?appid=3932890&count=8&maxlength=180&format=json"
+              "?appid=3932890&count=20&maxlength=180&format=json&l=english"
           )
           req = urllib.request.Request(api, headers={"User-Agent": "TarkovStoatBot"})
           try:
@@ -46,8 +47,17 @@ jobs:
               print(error.read()[:400])
               sys.exit(1)
 
+          def is_english(title: str) -> bool:
+              letters = re.findall(r"[A-Za-zА-Яа-яЁё]", title)
+              if not letters:
+                  return True
+              cyrillic = sum(1 for ch in letters if "А" <= ch <= "я" or ch in "Ёё")
+              return cyrillic / len(letters) < 0.3
+
           items = data.get("appnews", {}).get("newsitems", [])
           print(f"found {len(items)} steam news items")
+          items = [item for item in items if is_english(item.get("title") or "")]
+          print(f"english items: {len(items)}")
           for item in items[:3]:
               print(" ", item.get("title"), item.get("url"))
 

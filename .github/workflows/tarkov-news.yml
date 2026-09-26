@@ -8,40 +8,85 @@ jobs:
   post:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: seen.txt
+          key: tarkov-seen
+
       - name: Fetch feed and post new items
         env:
           STOAT_WEBHOOK: ${{ secrets.STOAT_WEBHOOK }}
-          FEED_URL: https://rss.app/feeds/v1.1/BpLwQ2ApYdd24xup.json
+          FEED_URL: https://rss.app/feeds/v1.1/YOUR_PUBLIC_FEED_ID.json
         run: |
           python3 - <<'PY'
-          import json, os, urllib.request, pathlib, hashlib
+          import json, os, sys, urllib.request, urllib.error, pathlib
+
           feed_url = os.environ["FEED_URL"]
-          hook = os.environ["STOAT_WEBHOOK"]
+          hook = os.environ.get("STOAT_WEBHOOK", "").strip()
+          if not hook:
+              print("STOAT_WEBHOOK secret is empty")
+              sys.exit(1)
+
           state = pathlib.Path("seen.txt")
           seen = set(state.read_text().splitlines()) if state.exists() else set()
-          with urllib.request.urlopen(feed_url, timeout=30) as r:
-              data = json.load(r)
+          print(f"seen count: {len(seen)}")
+
+          try:
+              req = urllib.request.Request(feed_url, headers={"User-Agent": "tarkov-stoat-bot"})
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  raw = r.read()
+                  print(f"feed HTTP {r.status}, {len(raw)} bytes")
+          except urllib.error.HTTPError as e:
+              print(f"feed fetch failed: HTTP {e.code}")
+              print(e.read()[:500])
+              sys.exit(1)
+
+          text = raw.decode("utf-8", "replace")
+          if text.lstrip().startswith("<"):
+              print("got XML, not JSON — use the .json feed URL or convert")
+              sys.exit(1)
+          try:
+              data = json.loads(text)
+          except json.JSONDecodeError:
+              print("feed is not JSON:")
+              print(text[:400])
+              sys.exit(1)
+
           items = data.get("items") or data.get("entries") or []
+          if isinstance(data.get("data"), dict):
+              items = data["data"].get("items") or items
+          print(f"parsed {len(items)} items")
+          if items:
+              print("sample keys:", list(items[0].keys()))
+
+          posted = 0
           new_lines = list(seen)
           for item in reversed(items[:8]):
-              url = item.get("url") or item.get("link") or ""
+              url = item.get("url") or item.get("link") or item.get("id") or ""
+              if isinstance(url, dict):
+                  url = url.get("href") or ""
               title = item.get("title") or "Tarkov update"
+              if isinstance(title, dict):
+                  title = title.get("text") or str(title)
               key = url or title
               if not key or key in seen:
                   continue
               body = json.dumps({"content": f"**{title}**\n{url}"}).encode()
-              req = urllib.request.Request(
-                  hook, data=body,
-                  headers={"Content-Type": "application/json"},
-                  method="POST",
-              )
-              urllib.request.urlopen(req, timeout=30)
+              try:
+                  hook_req = urllib.request.Request(
+                      hook, data=body,
+                      headers={"Content-Type": "application/json"},
+                      method="POST",
+                  )
+                  with urllib.request.urlopen(hook_req, timeout=30) as resp:
+                      print(f"posted {title!r} -> HTTP {resp.status}")
+              except urllib.error.HTTPError as e:
+                  print(f"stoat webhook failed: HTTP {e.code}")
+                  print(e.read()[:500])
+                  sys.exit(1)
               new_lines.append(key)
+              posted += 1
+
           state.write_text("\n".join(new_lines[-200:]) + ("\n" if new_lines else ""))
+          print(f"done, posted {posted}")
           PY
-      - name: Save seen items
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: update seen feed items
-        continue-on-error: true

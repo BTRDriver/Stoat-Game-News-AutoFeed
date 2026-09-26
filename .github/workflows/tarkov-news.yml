@@ -78,7 +78,7 @@ jobs:
                   "content": f"**{title}**\n{url}",
                   "masquerade": {
                       "name": "Tarkov News",
-                      "avatar": "https://cdn.cloudflare.steamstatic.com/steam/apps/3932890/capsule_231x87.jpg"
+                      "avatar": "https://pbs.twimg.com/profile_images/2084170065411227648/7NyfXoxj.jpg"
                   }
               }).encode()
               try:

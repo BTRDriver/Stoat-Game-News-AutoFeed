@@ -15,8 +15,8 @@ jobs:
 
       - name: Fetch feed and post new items
         env:
-          STOAT_WEBHOOK: ${{ secrets.STOAT_WEBHOOK }}
-          FEED_URL: https://rss.app/feeds/v1.1/YOUR_PUBLIC_FEED_ID.json
+          STOAT_WEBHOOK: ${{ https://stoat.chat/api/webhooks/01M3F8FM24AWZRNQPX2VHWWJBM/WGCyNN8SlWmMklyWs39qT4vzKDmx2HHdkkTIwSQHxM-pn6b-x1B967UE9OFEnt9o }}
+          FEED_URL: https://www.escapefromtarkov.com/news
         run: |
           python3 - <<'PY'
           import json, os, sys, urllib.request, urllib.error, pathlib

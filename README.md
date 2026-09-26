@@ -1,2 +1,2 @@
-# Tarkov-News
-This is a project to autofeed Tarkov news to a Stoat Server. 
+# Stoat Game News AutoFeed
+This is a project to autofeed Gaming news to a Stoat Server. 

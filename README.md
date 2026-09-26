@@ -43,3 +43,7 @@ Same channel for every game? Use one secret and point each workflow at:
 
 ```yaml
 STOAT_WEBHOOK: ${{ secrets.STOAT_WEBHOOK }}
+
+## Also see
+Want a Monday digest instead of per-game posts?  
+[Stoat Weekly Gaming News](https://github.com/Unknown-Trooper/Stoat-Weekly-Gaming-News) — Steam charts, updates, and upcoming releases in one Stoat message.

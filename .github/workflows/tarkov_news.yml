@@ -16,7 +16,7 @@ jobs:
 
       - name: Fetch Steam news and post to Stoat
         env:
-          STOAT_WEBHOOK: ${{ secrets.STOAT_WEBHOOK }}
+          STOAT_WEBHOOK: ${{ secrets.STOAT_WEBHOOK_EFT }}
         run: |
           python3 - <<'PY'
           import html

@@ -12,7 +12,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: seen.txt
-          key: wardogs-seen
+          key: wardogs-seen-v2
 
       - name: Fetch Steam news and post to Stoat
         env:
@@ -78,7 +78,7 @@ jobs:
                   "content": text,
                   "masquerade": {
                       "name": "WARDOGS News",
-                      "avatar": "https://cdn.cloudflare.steamstatic.com/steam/apps/1867240/capsule_231x87.jpg"
+                      "avatar": "https://pbs.twimg.com/profile_images/1998387985121734656/lrIOJUbP.jpg"
                   }
               }).encode()
               try:

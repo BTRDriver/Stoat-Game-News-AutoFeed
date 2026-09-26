@@ -12,7 +12,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: seen.txt
-          key: arc-raiders-seen
+          key: arc-raiders-seen-v2
 
       - name: Fetch Steam news and post to Stoat
         env:

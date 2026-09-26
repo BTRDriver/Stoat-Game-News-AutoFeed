@@ -15,7 +15,7 @@ jobs:
 
       - name: Fetch feed and post new items
         env:
-          STOAT_WEBHOOK: ${{ https://stoat.chat/api/webhooks/01M3F8FM24AWZRNQPX2VHWWJBM/WGCyNN8SlWmMklyWs39qT4vzKDmx2HHdkkTIwSQHxM-pn6b-x1B967UE9OFEnt9o }}
+          STOAT_WEBHOOK: ${{https://stoat.chat/api/webhooks/01M3F8FM24AWZRNQPX2VHWWJBM/WGCyNN8SlWmMklyWs39qT4vzKDmx2HHdkkTIwSQHxM-pn6b-x1B967UE9OFEnt9o}}
           FEED_URL: https://www.escapefromtarkov.com/news
         run: |
           python3 - <<'PY'

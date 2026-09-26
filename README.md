@@ -8,7 +8,7 @@ No RSS.app, no paid Zapier/Make, no third-party bot permissions. One workflow pe
 
 | Game | Workflow | Steam App ID | Secret |
 |---|---|---|---|
-| Escape from Tarkov | `tarkov-news.yml` | `3932890` | `STOAT_WEBHOOK` |
+| Escape from Tarkov | `tarkov-news.yml` | `3932890` | `STOAT_WEBHOOK_EFT` |
 | DayZ | `dayz_news.yml` | `221100` | `STOAT_WEBHOOK_DAYZ` |
 | Nuclear Option | `nuclear_option_news.yml` | `2168680` | `STOAT_WEBHOOK_NUCLEAR` |
 | ARC Raiders | `arc_raiders_news.yml` | `1808500` | `STOAT_WEBHOOK_ARC` |

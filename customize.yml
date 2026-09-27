@@ -1,0 +1,86 @@
+# How to customize a Stoat game news feed
+# Copy any file in .github/workflows/ and change only the fields below.
+
+guide:
+  title: Customize a game feed
+  summary: >
+    Every game uses the same script. People only edit the CONFIG block
+    and the GitHub secret name. Do not put webhook URLs in the workflow file.
+
+what_to_edit:
+  config_block: |
+    APP_ID = 2887580
+    GAME_NAME = "Active Matter"
+    BOT_NAME = "Active Matter News"
+    AVATAR = "https://example.com/avatar.jpg"
+    SECRET_ENV = "STOAT_WEBHOOK" - NEVER put your webhook in the YML 
+    NEWS_HUB = "https://store.steampowered.com/news/app/2887580"
+    CACHE_LABEL = "active-matter"
+
+  yaml_lines:
+    cache_key: "active-matter-seen-${{ github.run_id }}"
+    restore_keys:
+      - "active-matter-seen-"
+    secret_line: "STOAT_WEBHOOK: ${{ secrets.STOAT_WEBHOOK_ACTIVEMATTER }}"
+
+fields:
+  APP_ID:
+    what: Steam App ID
+    where: https://steamdb.info
+    example: 2887580
+  GAME_NAME:
+    what: Fallback title if Steam sends no headline
+    example: Active Matter
+  BOT_NAME:
+    what: Name shown on the Stoat message
+    example: Active Matter News
+  AVATAR:
+    what: Direct image URL for the webhook
+    notes: Must be .jpg or .png. Webhook needs Masquerade enabled.
+  SECRET_ENV:
+    what: Env var the script reads
+    value: STOAT_WEBHOOK
+    notes: Leave this as STOAT_WEBHOOK. Change the GitHub secret name instead.
+  NEWS_HUB:
+    what: Link posted under the news item
+    format: "https://store.steampowered.com/news/app/{APP_ID}"
+  cache_key:
+    what: Unique cache name per game
+    notes: Two games with the same key will share posted history and skip items.
+  github_secret:
+    what: Stoat webhook URL for that channel
+    example: STOAT_WEBHOOK_ACTIVEMATTER
+    notes: Never paste the URL into the yml.
+
+add_a_game:
+  - Copy any workflow in .github/workflows/
+  - Change the workflow name
+  - Change the cache key prefix
+  - Point secrets.NAME at a new secret
+  - Fill in the CONFIG block
+  - Add the secret in Settings → Secrets and variables → Actions
+  - Create a Stoat webhook and enable Masquerade
+  - Run the workflow once from the Actions tab
+
+how_it_runs:
+  - Read the webhook from the GitHub secret
+  - Fetch Steam news for APP_ID
+  - Keep English titles
+  - Load seen.txt from cache
+  - First run posts only the newest item, then remembers the rest
+  - Later runs post new IDs only
+  - Message is title, short description, NEWS_HUB link
+  - Save seen.txt so the next run does not repeat
+
+logs:
+  "secret missing": Wrong or empty GitHub secret
+  "steam news failed": Bad App ID or Steam is down
+  "seen count: 0": First run, or cache did not restore
+  "seen count: 12 / posted 0": Working, nothing new
+  "posted Title -> HTTP 204": Posted to Stoat
+  "stoat webhook failed": Dead or rotated webhook
+
+safety:
+  - A webhook URL can post to that channel
+  - Keep it in GitHub secrets only
+  - Rotate it if it appears in git or a screenshot
